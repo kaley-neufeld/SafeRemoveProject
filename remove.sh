@@ -5,31 +5,34 @@ recycle_bin="$HOME/deleted"
 
 if [ -d "$recycle_bin" ];
 then
-	echo "deleted directory does exist"
+	echo "log - deleted directory does exist"
 else
-	echo "deleted directory does NOT exist"
-	echo "creating directory"
+	echo "log - deleted directory does NOT exist, creating directory"
 	mkdir $recycle_bin
 fi
 
 if [ ${#args} == 0 ];
 then
-       echo "no filename provided"
+       echo "error - no filename provided"
        exit 1
 fi
 
 for file in ${args[@]}
 do
-	echo $file
+	echo "log - processing $file"
 	if [ -d $file ]
 	then
-		echo "directory name provided"
+		echo "error - director name provided"
 		exit 1
 	elif [ ! -f $file ]
 	then
-		echo "$file does not exist"
+		echo "error - $file does not exist"
 		exit 1
+	else
+		read -a file_info <<< $(ls -i $file)
+		new_file_name="${file_info[1]}_${file_info[0]}" 
+		echo "log - removed file will be called $new_file_name"
 	fi
 done
 
-echo "end of script"
+echo "log - end of script"
