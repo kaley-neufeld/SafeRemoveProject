@@ -30,8 +30,10 @@ do
 		exit 1
 	else
 		read -a file_info <<< $(ls -i $file)
-		new_file_name="${file_info[1]}_${file_info[0]}" 
+		new_file_name="${file_info[1]}_${file_info[0]}"
+	       	read orig_file_path <<< $(readlink -f $file)	
 		echo "log - removed file will be called $new_file_name"
+		tee -a $HOME/.restore.info <<< "$new_file_name:$orig_file_path"
 	fi
 done
 
