@@ -20,6 +20,7 @@ fi
 for file in ${args[@]}
 do
 	echo "log - processing $file"
+
 	if [ -d $file ]
 	then
 		echo "error - director name provided"
@@ -28,12 +29,17 @@ do
 	then
 		echo "error - $file does not exist"
 		exit 1
+	elif [ $(readlink -f $file) == $(readlink -f $HOME/project/remove.sh) ]
+	then	
+		echo "error - attempting to delete remove - operation aborted"
+		exit 1
 	else
 		read -a file_info <<< $(ls -i $file)
+		read orig_file_path <<< $(readlink -f $file)
 		new_file_name="${file_info[1]}_${file_info[0]}"
-	       	read orig_file_path <<< $(readlink -f $file)	
 		echo "log - removed file will be called $new_file_name"
 		tee -a $HOME/.restore.info <<< "$new_file_name:$orig_file_path"
+		mv $file $recycle_bin
 	fi
 done
 
