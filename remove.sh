@@ -39,7 +39,7 @@ do
 		new_file_name="${file_info[1]}_${file_info[0]}"
 		echo "log - removed file will be called $new_file_name"
 		tee -a $HOME/.restore.info <<< "$new_file_name:$orig_file_path"
-		mv $file $recycle_bin
+		mv $file $recycle_bin/$new_file_name
 	fi
 done
 
