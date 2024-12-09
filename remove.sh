@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# variables, arguments, flags
 recycle_bin="$HOME/deleted"
 i_flag=''
 v_flag=''
@@ -11,10 +12,11 @@ while getopts 'iv' flag; do
 		\?) echo "invalid flag $flag";;
 	esac
 done
-echo "log - flags: $i_flag $v_flag"
 shift $((OPTIND - 1))
 args=("$@")
 
+
+# helper functions
 function remove () {
 	read -a file_info <<< $(ls -i $1)
 	read orig_file_path <<< $(readlink -f $1)
@@ -22,57 +24,61 @@ function remove () {
 	echo "log - removed file will be called $new_file_name in recycle bin"
 	tee -a $HOME/.restore.info <<< "$new_file_name:$orig_file_path"
 	mv $1 $recycle_bin/$new_file_name
+	if [ $v_flag ]
+	then
+		echo "removed $1"
+	fi
 }
 
-
-if [ -d "$recycle_bin" ];
-then
-	echo "log - deleted directory does exist"
-else
-	echo "log - deleted directory does NOT exist, creating directory"
-	mkdir $recycle_bin
-fi
-
-if [ ${#args} == 0 ];
-then
-       echo "error - no filename provided"
-       exit 1
-fi
-
-for file in ${args[@]}
-do
-	echo "log - processing $file"
-
-	if [ -d $file ]
+function main () {
+	if [ ! -d "$recycle_bin" ];
 	then
-		echo "error - director name provided"
-		exit 1
-	elif [ ! -f $file ]
-	then
-		echo "error - $file does not exist"
-		exit 1
-	elif [ $(readlink -f $file) == $(readlink -f $HOME/project/remove.sh) ]
-	then	
-		echo "error - attempting to delete remove - operation aborted"
-		exit 1
-	elif [ $(readlink -f file) == $(readlink -f $HOME/project/restore.sh) ]
-	then
-		echo "error - attemping to delete restore - operation aborted"
-		exit 1	
-	else
-		if [ $i_flag ]
-		then
-			read -p "remove file $file ? y/n " confirm
-			if [[ ${yes_array[@]} =~ $confirm ]]
-			then 
-				remove $file
-			else
-				echo "skipping $file"
-			fi
-		else
-			remove $file
-		fi
+		echo "log - deleted directory does NOT exist, creating directory"
+		mkdir $recycle_bin
 	fi
-done
+	
+	if [ ${#args} == 0 ];
+	then
+       		echo "error - no filename provided"
+       		exit 1
+	fi
+	
+	for file in ${args[@]}
+	do
+		echo "log - processing $file"
+	
+		if [ -d $file ]
+		then
+			echo "error - director name provided"
+			exit 1
+		elif [ ! -f $file ]
+		then
+			echo "error - $file does not exist"
+			exit 1
+		elif [ $(readlink -f $file) == $(readlink -f $HOME/project/remove.sh) ]
+		then	
+			echo "error - attempting to delete remove - operation aborted"
+			exit 1
+		elif [ $(readlink -f file) == $(readlink -f $HOME/project/restore.sh) ]
+		then
+			echo "error - attemping to delete restore - operation aborted"
+			exit 1	
+		else
+			if [ $i_flag ]
+			then
+				read -p "remove file $file ? y/n " confirm
+				if [[ ${yes_array[@]} =~ $confirm ]]
+				then 
+					remove $file
+				else
+					echo "skipping $file"
+				fi
+			else
+				remove $file
+			fi
+		fi
+	done
+}
 
+main
 echo "log - end of script"
