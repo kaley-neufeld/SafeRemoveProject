@@ -4,6 +4,7 @@
 recycle_bin="$HOME/deleted"
 i_flag=''
 v_flag=''
+yes_array=("y" "yes" "Y")
 
 while getopts 'iv' flag; do
 	case $flag in
@@ -18,12 +19,15 @@ args=("$@")
 
 # helper functions
 function remove () {
+	
+	read basefilename <<< $(basename $1)
 	read -a file_info <<< $(ls -i $1)
+	file_inode=${file_info[0]}
 	read orig_file_path <<< $(readlink -f $1)
-	new_file_name="${file_info[1]}_${file_info[0]}"
+	new_file_name="${basefilename}_${file_inode}"
 	echo "log - removed file will be called $new_file_name in recycle bin"
-	tee -a $HOME/.restore.info <<< "$new_file_name:$orig_file_path"
 	mv $1 $recycle_bin/$new_file_name
+	tee -a $HOME/.restore.info <<< "$new_file_name:$orig_file_path"
 	if [ $v_flag ]
 	then
 		echo "removed $1"
@@ -49,7 +53,7 @@ function main () {
 	
 		if [ -d $file ]
 		then
-			echo "error - director name provided"
+			echo "error - directory name provided"
 			exit 1
 		elif [ ! -f $file ]
 		then
@@ -59,14 +63,15 @@ function main () {
 		then	
 			echo "error - attempting to delete remove - operation aborted"
 			exit 1
-		elif [ $(readlink -f file) == $(readlink -f $HOME/project/restore.sh) ]
+		elif [ $(readlink -f $file) == $(readlink -f $HOME/project/restore.sh) ]
 		then
 			echo "error - attemping to delete restore - operation aborted"
 			exit 1	
 		else
 			if [ $i_flag ]
 			then
-				read -p "remove file $file ? y/n " confirm
+				read -p "remove file $file ? y/n " response
+				confirm="\<$response\>"
 				if [[ ${yes_array[@]} =~ $confirm ]]
 				then 
 					remove $file
