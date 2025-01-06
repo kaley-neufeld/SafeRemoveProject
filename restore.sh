@@ -10,7 +10,7 @@ yes_array=("y" "Y" "yes")
 function restore () {
 	echo "log - restoring $1 to $2"
 	mv $recycle_bin/$1 $2
-	sed -i '/'$1'/d' .restore.info
+	sed -i '/'$1'/d' $HOME/.restore.info
 }
 
 function main () {
